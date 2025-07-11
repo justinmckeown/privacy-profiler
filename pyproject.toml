@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "privacy-profiler"
+version = "0.1.0"
+description = "A modular tool for analyzing data privacy risk"
+authors = [{ name="Justin McKeown", email="lab@signalinthenoise.net" }]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.8"
+dependencies = [
+    "pandas",
+    "numpy"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["metrics*", "model*", "profiler*", "interface*", "presenter*", "reporting*", "visualisation*"]
+
+
+[project.scripts]
+privacy-profiler = "privacy_profiler.main:main"
