@@ -122,4 +122,4 @@ src/
 
 ## 📄 License
 
-MIT License © [Justin McKeown]
+GNU AGPLv3 © Justin McKeown
