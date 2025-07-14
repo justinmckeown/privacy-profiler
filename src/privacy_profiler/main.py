@@ -47,8 +47,6 @@ def main() -> None:
     view = RootView(output_format=args.output_format)
     presenter = Presenter(model, view, input_path=args.input)
     results = presenter.run()
-    #print("[DEBUG] Presenter returned")
-    #print(results)
 
     if not results or "metrics" not in results or "interpretation" not in results:
         logging.error("No results to write — exiting.")

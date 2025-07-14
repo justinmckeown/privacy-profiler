@@ -26,16 +26,27 @@ class Presenter:
     
         try:
             results = self.model.run_profile()
-            metrics = results["metrics"]
-            row_risk = results.get("row_risk_summary", {})
-
-            interpretations = self.interpreter.interpret_report(metrics)
-            self.view.display_results(results, interpretations, row_risk)
+    
+            column_metrics = results.get("column_metrics", {})
+            row_metrics = results.get("row_metrics", {})
+            row_risk_summary = results.get("row_risk_summary", {})
+    
+            # Interpret both column-level and row-level metrics
+            column_interpretation = self.interpreter.interpret_report(column_metrics)
+            row_interpretation = self.interpreter.interpret_row_metrics(row_metrics)
+    
+            # Display combined output
+            self.view.display_results(results, column_interpretation, row_risk_summary, row_interpretation)
+    
             return {
                 "metrics": results,
-                "interpretation": interpretations,
-                "row_risk_summary": row_risk
+                "interpretation": {
+                    "column": column_interpretation,
+                    "row": row_interpretation
+                },
+                "row_risk_summary": row_risk_summary
             }
+    
         except Exception as e:
             logging.exception("Unexpected error during profiling.")
             self.view.display_error(f"An error occurred: {e}")

@@ -1,6 +1,6 @@
 import pandas as pd
 from typing import List, Dict
-from privacy_profiler.metrics.base_metric import ColumnMetric
+from privacy_profiler.metrics.column.base_metric import ColumnMetric
 
 class ColumnProfiler:
     def __init__(self, metrics: List[ColumnMetric]):

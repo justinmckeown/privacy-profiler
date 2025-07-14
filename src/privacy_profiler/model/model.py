@@ -1,7 +1,8 @@
 import pandas as pd
 from pathlib import Path
 from privacy_profiler.profiler.column_profile import ColumnProfiler
-from privacy_profiler.metrics import GiniCoefficient, ShannonEntropyMetric, UniquenessRatioMetric, NullRatioMetric, RowRiskAssessor
+from privacy_profiler.metrics.column import GiniCoefficient, ShannonEntropyMetric, UniquenessRatioMetric, NullRatioMetric
+from privacy_profiler.metrics.privacy_assessment_runner import PrivacyAssessmentRunner
 
 class Model:
     def __init__(self):
@@ -35,11 +36,16 @@ class Model:
 
         column_metrics = self.profiler.profile(self.df)
 
-        # TODO: Make this configurable later; for now it's hardcoded
+        # TODO: Make this configurable later
         quasi_identifiers = ["email", "postcode"]
-        row_risk = RowRiskAssessor(quasi_identifiers).assess(self.df)
+        sensitive_attributes = "diagnosis" #TODO: replace with appropriate column from dataset being anlysed
 
-        return {
-            "metrics": column_metrics,
-            "row_risk_summary": row_risk
-        }
+        runner = PrivacyAssessmentRunner()
+        assessment = runner.run(
+            df=self.df,
+            quasi_identifiers=quasi_identifiers,
+            sensitive_attr=sensitive_attributes
+            )
+
+
+        return assessment
