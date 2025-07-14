@@ -8,12 +8,24 @@ Privacy Profiler is a modular, command-line tool for analyzing the privacy risk 
 
 - 📊 Supports multiple input formats: CSV, Parquet, Excel, JSON
 - 🧮 Built-in privacy metrics:
+  ### Column-Level
   - Gini Coefficient
   - Shannon Entropy
   - Uniqueness Ratio
   - Null Ratio
-- 🧠 Interpretation engine with per-column risk assessments
-- 🔎 Row-level uniqueness scoring (k-anonymity-style)
+
+  ### Row-Level (Quasi-Identifier Based)
+  - k-Anonymity
+  - l-Diversity
+  - t-Closeness (TVD-based)
+  - Mutual Information (inference risk)
+  - Minimum Description Length (compressibility)
+
+- 🧠 Interpretation engine:
+  - Per-column and per-metric risk classification
+  - Includes supporting statistics (min k, MI bits, compression ratio, etc.)
+- 🔎 Row-level uniqueness summary (percent uniquely identifiable records)
+- 🔁 Flexible architecture (no hardcoded column names)
 - 🧾 Multi-format output:
   - JSON (metrics, interpretation, full)
   - CSV (flat table for spreadsheet use)
@@ -21,6 +33,7 @@ Privacy Profiler is a modular, command-line tool for analyzing the privacy risk 
 - 🧱 Modular codebase (MVP architecture + SOLID principles)
 
 ---
+
 
 ## 📦 Installation
 
@@ -72,15 +85,24 @@ data-output/
 
 ### Column Metrics
 
-- `gini_coefficient`: Measures inequality in distribution
-- `shannon_entropy`: Measures diversity/unpredictability
-- `uniqueness_ratio`: % of values that are unique
-- `null_ratio`: % of missing values
+- gini_coefficient: Inequality/skew in value distribution
+- shannon_entropy: Diversity or unpredictability
+- uniqueness_ratio: Fraction of unique values
+- null_ratio: Fraction of missing values
 
-### Row-Level Risk Summary
+### Row-Level Metrics
 
-- Based on uniqueness across selected quasi-identifiers
-- Reports % of unique rows and assigns a risk level
+- k_anonymity: Smallest equivalence class (low k = high risk)
+- l_diversity: Sensitive value diversity within groups
+- t_closeness: How closely each group reflects global sensitive value distribution
+- mutual_information: Linkage power between QIs and sensitive attribute
+- minimum_description_length: Compressibility of QI columns
+
+### Interpretation Output
+
+- Human-readable risk summaries for each metric
+- Justified with supporting statistics:
+   - "Minimum k is 1; 72% of groups violate k=5; Avg k: 2.1"
 
 ---
 
@@ -101,12 +123,14 @@ data-output/
 ```
 src/
 └── privacy_profiler/
-    ├── model/           # Data loading + profiling
-    ├── metrics/         # Gini, entropy, uniqueness, row risk
-    ├── presenter/       # CLI flow control
+    ├── model/           # Data loading + runner integration
+    ├── metrics/         # All column and row metric logic
+    ├── presenter/       # CLI coordinator
     ├── interface/       # Output formatting
-    ├── reporting/       # JSON & CSV report writing
+    ├── interpreter/     # Interpretation engine
+    ├── reporting/       # JSON & CSV exporters
     ├── main.py          # CLI entry point
+
 ```
 
 ---
@@ -116,7 +140,9 @@ src/
 - [x] CLI tool with privacy metrics
 - [x] Row-level uniqueness scoring
 - [x] CSV & JSON output
-- [ ] Configurable quasi-identifiers
+- [ ] Configurable quasi-identifiers + sensitive attribute
+- [ ] YAML-based config
+- [ ] Full CSV reporting for spreadsheets
 
 ---
 
