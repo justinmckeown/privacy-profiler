@@ -36,23 +36,19 @@ class PrivacyAssessmentRunner:
             MDLMetric()
         ])
 
-    def run(
-        self,
-        df: pd.DataFrame,
-        quasi_identifiers: List[str],
-        sensitive_attr: Optional[str] = None
-    ) -> Dict[str, object]:
+    def run(self, df: pd.DataFrame, quasi_identifiers: List[str], sensitive_attributes: Optional[List[str]] = None) -> Dict[str, object]:
         if df.empty:
             raise ValueError("Provided DataFrame is empty.")
 
         if not quasi_identifiers:
             raise ValueError("You must provide at least one quasi-identifier.")
 
-        if sensitive_attr:
-            row_columns = {
-                "quasi_id_plus_sensitive": quasi_identifiers + [sensitive_attr],
-                "quasi_only": quasi_identifiers
-            }
+        row_columns = {}
+
+        if sensitive_attributes:
+            for attr in sensitive_attributes:
+                row_columns[f"quasi_id_plus_{attr}"] = quasi_identifiers + [attr]
+
         else:
             row_columns = {
                 "quasi_only": quasi_identifiers

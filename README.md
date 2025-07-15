@@ -106,6 +106,70 @@ data-output/
 
 ---
 
+---
+
+## 🧩 Key Concepts
+
+### Quasi-Identifiers (QIs)
+
+> Quasi-identifiers are columns that may not directly identify individuals on their own but can do so when combined with external datasets.
+
+They are used to **group records into equivalence classes** when computing re-identification risk.
+
+**Examples:** `email`, `postcode`, `birth_year`, `gender`
+
+Used in:
+- `k-anonymity`
+- `l-diversity`
+- `t-closeness`
+- Mutual Information
+- MDL (compressibility)
+
+### Sensitive Attributes
+
+> Sensitive attributes are columns that contain private or confidential information that should not be inferred, disclosed, or linked to a person.
+
+**Examples:** `diagnosis`, `income`, `ethnicity`, `region`, `score`
+
+Used in:
+- `l-diversity`
+- `t-closeness`
+- Mutual Information
+
+**Important:**  
+> A column should **never appear as both a quasi-identifier and a sensitive attribute**. Doing so can invalidate or distort privacy risk metrics.
+
+---
+
+## ⚠️ CLI Safety Check
+
+The tool includes a safeguard:
+- If you pass a column in both `--quasi-identifiers` and `--sensitive-attributes`, the system will:
+  - Show a warning
+  - Pause and prompt for confirmation
+  - Allow you to cancel with `Ctrl+C`
+
+---
+
+## 🧪 Example CLI Usage
+
+```bash
+privacy-profiler -i data.csv \
+  --quasi-identifiers email postcode \
+  --sensitive-attributes income diagnosis \
+  --output-format json \
+  --output-path data-output/report
+```
+
+You may pass multiple columns to each using space-separated values:
+
+```bash
+--quasi-identifiers email postcode
+--sensitive-attributes score region
+```
+
+
+
 ## ⚙️ CLI Options
 
 | Flag              | Description                                           |

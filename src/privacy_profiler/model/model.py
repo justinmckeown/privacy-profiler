@@ -1,5 +1,6 @@
 import pandas as pd
 from pathlib import Path
+from typing import List
 from privacy_profiler.profiler.column_profile import ColumnProfiler
 from privacy_profiler.metrics.column import GiniCoefficient, ShannonEntropyMetric, UniquenessRatioMetric, NullRatioMetric
 from privacy_profiler.metrics.privacy_assessment_runner import PrivacyAssessmentRunner
@@ -29,23 +30,19 @@ class Model:
             raise ValueError(f"Unsupported file type: {ext}")
 
 
-    def run_profile(self):
+    def run_profile(self, quasi_identifiers: List[str], sensitive_attributes: List[str] = None):
         if self.df is None:
             raise ValueError("No data loaded.")
+        if not quasi_identifiers:
+            raise ValueError("you must provide at least one quasi-identifier column")
         
-
-        column_metrics = self.profiler.profile(self.df)
-
-        # TODO: Make this configurable later
-        quasi_identifiers = ["email", "postcode"]
-        sensitive_attributes = "diagnosis" #TODO: replace with appropriate column from dataset being anlysed
+        # TODO: Delete this line? I
+        #column_metrics = self.profiler.profile(self.df)
 
         runner = PrivacyAssessmentRunner()
         assessment = runner.run(
             df=self.df,
             quasi_identifiers=quasi_identifiers,
-            sensitive_attr=sensitive_attributes
+            sensitive_attributes=sensitive_attributes
             )
-
-
         return assessment

@@ -1,4 +1,5 @@
 import logging
+from typing import List
 from privacy_profiler.model.model import Model
 from privacy_profiler.interface.rootview import RootViewController
 from privacy_profiler.interpreter.interpretation_engine import InterpretationEngine
@@ -8,10 +9,12 @@ from privacy_profiler.interpreter.interpretation_engine import InterpretationEng
 logger = logging.getLogger(__name__)
 
 class Presenter:
-    def __init__(self, model: Model, view: RootViewController, input_path: str):
+    def __init__(self, model: Model, view: RootViewController, input_path: str, quasi_identifiers: List[str],  sensitive_attributes: List[str]):
         self.model = model
         self.view = view
         self.input_path = input_path
+        self.quasi_identifiers = quasi_identifiers or []
+        self.sensitive_attributes = sensitive_attributes or []
         self.interpreter = InterpretationEngine()
 
 
@@ -25,7 +28,10 @@ class Presenter:
             return {}
     
         try:
-            results = self.model.run_profile()
+            results = self.model.run_profile(
+                quasi_identifiers=self.quasi_identifiers,
+                sensitive_attributes=self.sensitive_attributes
+            )
     
             column_metrics = results.get("column_metrics", {})
             row_metrics = results.get("row_metrics", {})
