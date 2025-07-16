@@ -5,7 +5,8 @@ from pathlib import Path
 from privacy_profiler.interface.rootview import RootViewController as RootView
 from privacy_profiler.model.model import Model
 from privacy_profiler.presenter.presenter import Presenter
-from privacy_profiler.reporting.report_builder import ReportBuilder 
+from privacy_profiler.reporting.report_builder import ReportBuilder
+from privacy_profiler.utilities.yaml_config_loader import load_yaml_config, merge_configs
 
 
 def setup_logging(log_level: str) -> None:
@@ -15,7 +16,7 @@ def setup_logging(log_level: str) -> None:
     formatter = logging.Formatter('%(asctime)s %(levelname)s :: %(message)s')
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(formatter)
-    stream_handler.setLevel(logging.CRITICAL)
+    stream_handler.setLevel(logging.INFO)
 
     file_handler = logging.FileHandler('info.log')
     file_handler.setFormatter(formatter)
@@ -29,16 +30,18 @@ def setup_logging(log_level: str) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Privacy Profiler CLI")
 
-    parser.add_argument('--input', '-i', required=True, help="Path to input file (.csv, .parquet, .xlsx, .json)")
+    parser.add_argument('--input', '-i', required=False, help="Path to input file (.csv, .parquet, .xlsx, .json)")
     parser.add_argument('--output-format', '-o', default='text', choices=['text', 'json'], help="Format of output")
     parser.add_argument('--output-path', help="If set, saves JSON results to this path")
     parser.add_argument("--quasi-identifiers", nargs="+", help="List of quasi-identifier columns")
     parser.add_argument("--sensitive-attributes", nargs="+", help="List of sensitive attribute columns")
+    parser.add_argument("--config", help="Optional path config.yaml")
     parser.add_argument('--verbose', action='store_true', help="Print metric definitions before results")
     parser.add_argument('--log-level', default='INFO', help="Logging level (DEBUG, INFO, WARNING, ERROR)")
-
-
+    
+    
     return parser.parse_args()
+
 
 
 def check_column_overlap(quasis, sensitives):
@@ -50,31 +53,45 @@ def check_column_overlap(quasis, sensitives):
         logging.warning(f"⚠️  Warning: The following columns are listed as both quasi-identifiers and sensitive attributes:\n{',\n'.join(overlap)}")
         print(f"\n⚠️  Warning: These columns appear in both Quasi-Identifiers and Sensitive Attributes:\n{',\n'.join(overlap)}")
         print("This may produce misleading metrics. Consider separating them.\n")
-        input("Press Any Key continue or Ctrl+C to cancel...")
+        input("Press Enter to continue or Ctrl+C to cancel...")
 
 
 
 def main() -> None:
     args = parse_args()
-    check_column_overlap(args.quasi_identifiers, args.sensitive_attributes)
+    try:
+        yaml_config = load_yaml_config(args.config) if args.config else None
+    except FileNotFoundError:
+        print(f"[ERROR]  Config file not found {args.config}")
+        return
+    final_args = merge_configs(args, yaml_config)
+    print(f'FINAL ARGS: {final_args}')
 
-    setup_logging(args.log_level)
+    check_column_overlap(final_args.quasi_identifiers, final_args.sensitive_attributes)
 
-    logging.debug("Program started with arguments: %s", args)
+    setup_logging(final_args.log_level)
+
+    logging.debug("Program started with arguments: %s", final_args)
 
     model = Model()
-    view = RootView(output_format=args.output_format)
-    presenter = Presenter(model, view, input_path=args.input, quasi_identifiers=args.quasi_identifiers, sensitive_attributes=args.sensitive_attributes)
-    results = presenter.run()
+    view = RootView(output_format=final_args.output_format)
 
+
+    if not final_args.input_path:
+        print("[ERROR] No input file specified. use --input or define 'input_path' in config.yaml")
+        return
+
+    presenter = Presenter(model, view, input_path=final_args.input_path, quasi_identifiers=final_args.quasi_identifiers, sensitive_attributes=final_args.sensitive_attributes)
+    results = presenter.run()
+    
     if not results or "metrics" not in results or "interpretation" not in results:
         logging.error("No results to write — exiting.")
         return
 
-    input_stem = Path(args.input).stem
-    output_dir = Path(args.output_path).parent if args.output_path else Path("data-output")
+    input_stem = Path(final_args.input_path).stem
+    output_dir = Path(final_args.output_path).parent if final_args.output_path else Path("data-output")
     output_base = output_dir / input_stem
-    if args.output_path and args.output_format == 'json':
+    if final_args.output_path and final_args.output_format == 'json':
 
         # Write raw metrics
         metrics_path = f"{output_base}_metrics.json"
@@ -109,7 +126,7 @@ def main() -> None:
 
     
 
-    if args.verbose:
+    if final_args.verbose:
         print("\nMetric Reference:")
         print("- gini_coefficient: Measures inequality in distribution (0 = equal, 1 = very skewed)")
         print("- shannon_entropy: Measures diversity and unpredictability in values")

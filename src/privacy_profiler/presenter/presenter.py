@@ -42,8 +42,13 @@ class Presenter:
             row_interpretation = self.interpreter.interpret_row_metrics(row_metrics)
     
             # Display combined output
-            self.view.display_results(results, column_interpretation, row_risk_summary, row_interpretation)
-    
+            #self.view.display_results(results, column_interpretation, row_risk_summary, row_interpretation)
+            print('*'*100)
+            print("DEBUG column_interpretation:", column_interpretation)
+            print('*'*100)
+            self.view.display_results(results.get("column_metrics", {}), column_interpretation, row_risk_summary, row_interpretation)
+
+
             return {
                 "metrics": results,
                 "interpretation": {

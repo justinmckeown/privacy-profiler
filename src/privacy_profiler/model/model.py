@@ -17,6 +17,9 @@ class Model:
         ])
 
     def load_data(self, path: str) -> None:
+        if not Path(path).exists():
+            raise FileNotFoundError(f"Input file not found: {path or 'None'}")
+
         ext = Path(path).suffix.lower()
         if ext == ".csv":
             self.df = pd.read_csv(path)

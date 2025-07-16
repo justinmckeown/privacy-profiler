@@ -1,0 +1,16 @@
+# File I/O
+input_path: data-input/mixed_data.csv
+output_path: data-output/yaml/report
+output_format: json
+
+# Privacy settings
+quasi_identifiers:
+  - email
+  - postcode
+
+sensitive_attributes:
+  - score
+
+# Optional flags
+log_level: INFO
+verbose: true
